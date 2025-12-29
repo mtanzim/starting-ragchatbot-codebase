@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RAG Vector Store Flow Diagram</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 1.1em;
+        }
+
+        .diagram {
+            display: grid;
+            grid-template-columns: 1fr 400px 1fr;
+            gap: 40px;
+            margin-top: 40px;
+            position: relative;
+        }
+
+        /* Columns */
+        .left-column, .right-column {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .center-column {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Card Styles */
+        .card {
+            background: white;
+            border: 2px solid #ddd;
+            border-radius: 12px;
+            padding: 20px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+            border-color: #667eea;
+        }
+
+        .card.active {
+            border-color: #667eea;
+            background: #f0f4ff;
+        }
+
+        .card-title {
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 1.1em;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .card-content {
+            color: #666;
+            font-size: 0.95em;
+            line-height: 1.6;
+        }
+
+        .icon {
+            font-size: 1.5em;
+        }
+
+        /* Vector Store Cards */
+        .vector-store {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .vector-store .card-title {
+            color: white;
+            font-size: 1.3em;
+            justify-content: center;
+        }
+
+        .vector-store .card-content {
+            color: rgba(255,255,255,0.95);
+        }
+
+        .collection-badge {
+            background: rgba(255,255,255,0.2);
+            padding: 8px 15px;
+            border-radius: 20px;
+            display: inline-block;
+            margin: 5px;
+            font-size: 0.9em;
+        }
+
+        /* Arrow Animations */
+        .arrow {
+            position: absolute;
+            stroke: #667eea;
+            stroke-width: 3;
+            fill: none;
+            pointer-events: none;
+        }
+
+        .arrow-animated {
+            stroke-dasharray: 10;
+            animation: dash 20s linear infinite;
+        }
+
+        @keyframes dash {
+            to {
+                stroke-dashoffset: -1000;
+            }
+        }
+
+        /* Section Headers */
+        .section-header {
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            font-weight: bold;
+            font-size: 1.2em;
+            margin-bottom: 10px;
+        }
+
+        /* Code snippets */
+        .code {
+            background: #f5f5f5;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85em;
+            margin-top: 10px;
+            overflow-x: auto;
+        }
+
+        /* Highlighted elements */
+        .highlight {
+            background: #fff3cd;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 600;
+        }
+
+        /* Info boxes */
+        .info-box {
+            background: #e7f3ff;
+            border-left: 4px solid #2196F3;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 6px;
+        }
+
+        .info-box h3 {
+            color: #2196F3;
+            margin-bottom: 10px;
+        }
+
+        .info-box ul {
+            margin-left: 20px;
+            color: #555;
+        }
+
+        .info-box li {
+            margin: 5px 0;
+        }
+
+        /* Legend */
+        .legend {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-top: 30px;
+            padding: 20px;
+            background: #f9f9f9;
+            border-radius: 10px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .legend-box {
+            width: 30px;
+            height: 30px;
+            border-radius: 6px;
+        }
+
+        .legend-ingestion {
+            background: linear-gradient(135deg, #56ab2f 0%, #a8e063 100%);
+        }
+
+        .legend-query {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+
+        .legend-storage {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        /* Responsive */
+        @media (max-width: 1200px) {
+            .diagram {
+                grid-template-columns: 1fr;
+                gap: 30px;
+            }
+        }
+
+        .pulse {
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 RAG Vector Store Architecture</h1>
+        <p class="subtitle">Interactive flow diagram showing document ingestion and query search paths</p>
+
+        <div class="diagram">
+            <!-- LEFT COLUMN: Document Ingestion -->
+            <div class="left-column">
+                <div class="section-header" style="background: linear-gradient(90deg, #56ab2f 0%, #a8e063 100%);">
+                    📥 Document Ingestion Pipeline
+                </div>
+
+                <div class="card" data-step="1" onclick="highlightStep(1)">
+                    <div class="card-title">
+                        <span class="icon">📄</span>
+                        1. Raw Document Files
+                    </div>
+                    <div class="card-content">
+                        Course files in <span class="highlight">/docs</span> folder
+                        <div class="code">course1_script.txt<br>course2_script.txt</div>
+                        Format: Course metadata + Lesson markers + Content
+                    </div>
+                </div>
+
+                <div class="card" data-step="2" onclick="highlightStep(2)">
+                    <div class="card-title">
+                        <span class="icon">⚙️</span>
+                        2. DocumentProcessor
+                    </div>
+                    <div class="card-content">
+                        <strong>Parses & Extracts:</strong>
+                        <ul style="margin-left: 20px; margin-top: 8px;">
+                            <li>Course Title, Link, Instructor</li>
+                            <li>Lesson Numbers & Titles</li>
+                            <li>Lesson Links</li>
+                        </ul>
+                        <div class="code">process_course_document()</div>
+                    </div>
+                </div>
+
+                <div class="card" data-step="3" onclick="highlightStep(3)">
+                    <div class="card-title">
+                        <span class="icon">✂️</span>
+                        3. Text Chunking
+                    </div>
+                    <div class="card-content">
+                        <strong>Sentence-based chunking:</strong>
+                        <ul style="margin-left: 20px; margin-top: 8px;">
+                            <li>Chunk size: <span class="highlight">800 chars</span></li>
+                            <li>Overlap: <span class="highlight">100 chars</span></li>
+                            <li>Context added to chunks</li>
+                        </ul>
+                        <div class="code">chunk_text() → CourseChunk[]</div>
+                    </div>
+                </div>
+
+                <div class="card" data-step="4" onclick="highlightStep(4)">
+                    <div class="card-title">
+                        <span class="icon">🔢</span>
+                        4. Embedding Generation
+                    </div>
+                    <div class="card-content">
+                        <strong>SentenceTransformer:</strong>
+                        <div class="code">all-MiniLM-L6-v2</div>
+                        Converts text chunks to 384-dimensional vectors
+                    </div>
+                </div>
+
+                <div class="card" data-step="5" onclick="highlightStep(5)">
+                    <div class="card-title">
+                        <span class="icon">💾</span>
+                        5. Store in ChromaDB
+                    </div>
+                    <div class="card-content">
+                        <strong>Two collections created:</strong>
+                        <ul style="margin-left: 20px; margin-top: 8px;">
+                            <li><span class="highlight">course_catalog</span>: Metadata</li>
+                            <li><span class="highlight">course_content</span>: Chunks</li>
+                        </ul>
+                        <div class="code">add_course_metadata()<br>add_course_content()</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CENTER COLUMN: Vector Store -->
+            <div class="center-column">
+                <div class="card vector-store pulse">
+                    <div class="card-title">
+                        <span class="icon">🗄️</span>
+                        ChromaDB Vector Store
+                    </div>
+                    <div class="card-content">
+                        <p style="margin-bottom: 15px;">Persistent vector database with semantic search capabilities</p>
+                        <div style="margin: 20px 0;">
+                            <div class="collection-badge">📚 course_catalog</div>
+                            <div style="color: rgba(255,255,255,0.9); font-size: 0.9em; margin: 10px 0;">
+                                • Course titles<br>
+                                • Instructors<br>
+                                • Lesson metadata<br>
+                                • Links
+                            </div>
+                        </div>
+                        <div style="margin: 20px 0;">
+                            <div class="collection-badge">📖 course_content</div>
+                            <div style="color: rgba(255,255,255,0.9); font-size: 0.9em; margin: 10px 0;">
+                                • Text chunks<br>
+                                • Embeddings<br>
+                                • Course/Lesson refs<br>
+                                • Chunk indices
+                            </div>
+                        </div>
+                        <div class="code" style="background: rgba(0,0,0,0.2); color: white; border: 1px solid rgba(255,255,255,0.3);">
+                            Path: ./chroma_db
+                        </div>
+                    </div>
+                </div>
+
+                <div class="info-box" style="background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%); border-left-color: #667eea;">
+                    <h3 style="color: #667eea;">🎯 Smart Features</h3>
+                    <ul>
+                        <li><strong>Fuzzy Course Matching:</strong> "MCP" → "Introduction to MCP"</li>
+                        <li><strong>Lesson Filtering:</strong> Search within specific lessons</li>
+                        <li><strong>Semantic Search:</strong> Meaning-based, not keyword-based</li>
+                        <li><strong>Source Tracking:</strong> Links back to original content</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- RIGHT COLUMN: Query Search -->
+            <div class="right-column">
+                <div class="section-header" style="background: linear-gradient(90deg, #f093fb 0%, #f5576c 100%);">
+                    🔎 Query Search Pipeline
+                </div>
+
+                <div class="card" data-step="6" onclick="highlightStep(6)">
+                    <div class="card-title">
+                        <span class="icon">💬</span>
+                        1. User Query
+                    </div>
+                    <div class="card-content">
+                        User asks a question via API:
+                        <div class="code">POST /api/query<br>{<br>  "query": "What is MCP?",<br>  "session_id": "..."<br>}</div>
+                    </div>
+                </div>
+
+                <div class="card" data-step="7" onclick="highlightStep(7)">
+                    <div class="card-title">
+                        <span class="icon">🤖</span>
+                        2. Claude Decides
+                    </div>
+                    <div class="card-content">
+                        <strong>Tool Use Pattern:</strong>
+                        <ul style="margin-left: 20px; margin-top: 8px;">
+                            <li>Claude receives tool definitions</li>
+                            <li>Decides if search needed</li>
+                            <li>Extracts parameters</li>
+                        </ul>
+                        <div class="code">stop_reason: "tool_use"</div>
+                    </div>
+                </div>
+
+                <div class="card" data-step="8" onclick="highlightStep(8)">
+                    <div class="card-title">
+                        <span class="icon">🎯</span>
+                        3. Course Name Resolution
+                    </div>
+                    <div class="card-content">
+                        <strong>Fuzzy matching via vector search:</strong>
+                        <div class="code">_resolve_course_name("MCP")</div>
+                        Searches <span class="highlight">course_catalog</span> semantically
+                        <br><br>
+                        Returns full title: "Introduction to MCP"
+                    </div>
+                </div>
+
+                <div class="card" data-step="9" onclick="highlightStep(9)">
+                    <div class="card-title">
+                        <span class="icon">🔍</span>
+                        4. Build Search Filter
+                    </div>
+                    <div class="card-content">
+                        <strong>Constructs ChromaDB filter:</strong>
+                        <div class="code">{<br>  "$and": [<br>    {"course_title": "..."},<br>    {"lesson_number": 1}<br>  ]<br>}</div>
+                    </div>
+                </div>
+
+                <div class="card" data-step="10" onclick="highlightStep(10)">
+                    <div class="card-title">
+                        <span class="icon">🔢</span>
+                        5. Vector Search
+                    </div>
+                    <div class="card-content">
+                        <strong>Semantic search in course_content:</strong>
+                        <ul style="margin-left: 20px; margin-top: 8px;">
+                            <li>Embed query → vector</li>
+                            <li>Find similar chunks (cosine)</li>
+                            <li>Apply filters</li>
+                            <li>Return top 5 results</li>
+                        </ul>
+                        <div class="code">collection.query()</div>
+                    </div>
+                </div>
+
+                <div class="card" data-step="11" onclick="highlightStep(11)">
+                    <div class="card-title">
+                        <span class="icon">📋</span>
+                        6. Format & Return Results
+                    </div>
+                    <div class="card-content">
+                        <strong>SearchResults object:</strong>
+                        <ul style="margin-left: 20px; margin-top: 8px;">
+                            <li>Documents (text chunks)</li>
+                            <li>Metadata (course, lesson, chunk)</li>
+                            <li>Distances (relevance scores)</li>
+                            <li>Sources (links)</li>
+                        </ul>
+                        Sent back to Claude for response generation
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Legend -->
+        <div class="legend">
+            <div class="legend-item">
+                <div class="legend-box legend-ingestion"></div>
+                <span><strong>Ingestion:</strong> One-time document loading</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-box legend-storage"></div>
+                <span><strong>Storage:</strong> Persistent vector database</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-box legend-query"></div>
+                <span><strong>Query:</strong> Real-time search per request</span>
+            </div>
+        </div>
+
+        <!-- Technical Details -->
+        <div class="info-box" style="margin-top: 30px;">
+            <h3>📊 Key Implementation Details</h3>
+            <ul>
+                <li><strong>Embedding Model:</strong> all-MiniLM-L6-v2 (384 dimensions, ~80MB)</li>
+                <li><strong>Vector DB:</strong> ChromaDB with persistent storage at ./chroma_db</li>
+                <li><strong>Chunk Strategy:</strong> Sentence-based with 800 char size, 100 char overlap</li>
+                <li><strong>Search Strategy:</strong> Semantic similarity (cosine distance) with metadata filtering</li>
+                <li><strong>Max Results:</strong> Top 5 most relevant chunks per query</li>
+                <li><strong>Collections:</strong> Separate storage for metadata (catalog) vs content</li>
+                <li><strong>IDs:</strong> Course titles for catalog, "{title}_{chunk_index}" for content</li>
+            </ul>
+        </div>
+
+        <!-- Code References -->
+        <div class="info-box" style="background: #f0f0f0; border-left-color: #666;">
+            <h3>📝 Code References</h3>
+            <ul>
+                <li><strong>Vector Store:</strong> backend/vector_store.py (VectorStore class, lines 34-267)</li>
+                <li><strong>Document Processing:</strong> backend/document_processor.py (DocumentProcessor class)</li>
+                <li><strong>Search Interface:</strong> backend/vector_store.py:61-100 (search method)</li>
+                <li><strong>Course Resolution:</strong> backend/vector_store.py:102-116 (_resolve_course_name)</li>
+                <li><strong>Data Models:</strong> backend/models.py (Course, Lesson, CourseChunk)</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        function highlightStep(step) {
+            // Remove all active classes
+            document.querySelectorAll('.card').forEach(card => {
+                card.classList.remove('active');
+            });
+
+            // Add active class to clicked card
+            const card = document.querySelector(`[data-step="${step}"]`);
+            if (card) {
+                card.classList.add('active');
+                card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        }
+
+        // Add hover effects to show relationships
+        document.querySelectorAll('.card').forEach(card => {
+            card.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateY(-5px) scale(1.02)';
+            });
+
+            card.addEventListener('mouseleave', function() {
+                if (!this.classList.contains('active')) {
+                    this.style.transform = 'translateY(0) scale(1)';
+                }
+            });
+        });
+
+        // Auto-cycle through steps (optional)
+        let currentStep = 1;
+        function autoHighlight() {
+            highlightStep(currentStep);
+            currentStep = (currentStep % 11) + 1;
+        }
+
+        // Uncomment to enable auto-cycling
+        // setInterval(autoHighlight, 3000);
+    </script>
+</body>
+</html>
