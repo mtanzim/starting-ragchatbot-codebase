@@ -122,10 +122,26 @@ function addMessage(content, type, sources = null, isWelcome = false) {
     let html = `<div class="message-content">${displayContent}</div>`;
     
     if (sources && sources.length > 0) {
+        // Build sources HTML with clickable badge links
+        const sourcesHtml = sources.map(source => {
+            // Handle both object and string (backward compatibility)
+            let content;
+            if (typeof source === 'string') {
+                content = escapeHtml(source);
+            } else if (source.url) {
+                // Create clickable link badge
+                content = `<a href="${escapeHtml(source.url)}" target="_blank" rel="noopener noreferrer" class="source-badge source-badge-link">${escapeHtml(source.text)}</a>`;
+            } else {
+                // No URL: plain text badge
+                content = `<span class="source-badge">${escapeHtml(source.text)}</span>`;
+            }
+            return content;
+        }).join('');
+
         html += `
             <details class="sources-collapsible">
                 <summary class="sources-header">Sources</summary>
-                <div class="sources-content">${sources.join(', ')}</div>
+                <div class="sources-content">${sourcesHtml}</div>
             </details>
         `;
     }
